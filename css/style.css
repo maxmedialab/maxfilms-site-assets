@@ -11,6 +11,12 @@
 /* ============================================================
    PART 1 · base
    ============================================================ */
+
+/* GHL full-width breakout: the page's code blocks sit inside GHL's boxed row/column.
+   Same approach as recapmedia.no. Harmless in the local preview. */
+body { overflow-x: hidden; }
+main, footer.footer { width: 100vw !important; position: relative !important; left: 50% !important; transform: translateX(-50%) !important; margin: 0 !important; max-width: none !important; }
+
 :root {
     --mf-black: #050506;
     --mf-carbon: #0B0B0D;
@@ -123,6 +129,7 @@ h1, h2, h3 {
 .nav-logo { display: flex; align-items: center; gap: 10px; }
 .nav-logo img { height: 34px; width: auto; }
 .nav-links { display: flex; align-items: center; gap: 34px; }
+.nav-links a { white-space: nowrap; }
 .nav-links a {
     font-family: var(--font-mono); font-size: 12px; font-weight: 600;
     letter-spacing: 0.18em; text-transform: uppercase; color: var(--mf-grey);
@@ -154,6 +161,11 @@ h1, h2, h3 {
     letter-spacing: 0.1em; text-transform: uppercase; color: var(--mf-white);
 }
 .mobile-menu a.mm-cta { color: var(--mf-red); }
+/* Max, 6 Nov: the five links wrapped between phone and laptop widths; the menu button takes over below 1024px */
+@media (max-width: 1023px) {
+    .nav-links { display: none; }
+    .nav-hamburger { display: flex; }
+}
 
 /* Buttons */
 .btn {
@@ -307,6 +319,8 @@ h1, h2, h3 {
 #contact .form-slot > .hud-label { margin-bottom: 22px; }
 .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 .ghl-form-hidden { display: none; }
+/* The native GHL form is the hidden backend pipe for .quote-form (js/main.js initFormBridge): keep it in the DOM, off screen */
+#form-builder, .hl_form-builder--main { position: absolute !important; left: -9999px !important; height: 0 !important; overflow: hidden !important; pointer-events: none !important; opacity: 0 !important; }
 
 /* Footer */
 .footer { border-top: 1px solid var(--mf-line); background: var(--mf-carbon); padding: 56px 0 40px; }
