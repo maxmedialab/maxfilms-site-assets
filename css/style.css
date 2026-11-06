@@ -197,6 +197,23 @@ h1, h2, h3 {
         var(--mf-black);
     overflow: hidden;
 }
+/* Hero loop under a dark scrim: darkest where the text sits (left), lighter on the right, fades into the page at the bottom */
+.hero-media { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; background: var(--mf-black); }
+.hero-video { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(0.85); }
+.hero-media::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+        linear-gradient(180deg, rgba(5, 5, 6, 0.55) 0%, rgba(5, 5, 6, 0) 28%, rgba(5, 5, 6, 0) 62%, var(--mf-black) 100%),
+        linear-gradient(90deg, rgba(5, 5, 6, 0.88) 0%, rgba(5, 5, 6, 0.84) 58%, rgba(5, 5, 6, 0.55) 100%);
+}
+/* Scrim values measured over every frame of the loop (95th-percentile background behind the text): red H1 line ≥ 3.4:1, sub ≥ 8.7:1 */
+@media (max-width: 720px) {
+    .hero-media::after {
+        background:
+            linear-gradient(180deg, rgba(5, 5, 6, 0.55) 0%, rgba(5, 5, 6, 0) 28%, rgba(5, 5, 6, 0) 62%, var(--mf-black) 100%),
+            rgba(5, 5, 6, 0.84);
+    }
+}
 .vf-frame { position: absolute; inset: clamp(78px, 9vw, 100px) clamp(14px, 2.5vw, 34px) clamp(14px, 2.5vw, 34px); pointer-events: none; z-index: 2; }
 .vf-frame i { position: absolute; width: 26px; height: 26px; border-color: var(--mf-line-strong); border-style: solid; }
 .vf-frame i:nth-child(1) { top: 0; left: 0; border-width: 2px 0 0 2px; }

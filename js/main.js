@@ -328,6 +328,14 @@
             });
         });
 
+        /* ---------- Hero loop: still poster frame under reduced motion or Save-Data ---------- */
+        var heroVideo = document.querySelector('.hero-video');
+        var saveData = navigator.connection && navigator.connection.saveData;
+        if (heroVideo && (reduceMotion || saveData)) {
+            heroVideo.removeAttribute('autoplay');
+            heroVideo.pause();
+        }
+
         /* ---------- HUD timecode (decorative) ---------- */
         var tc = document.getElementById('hud-timecode');
         if (tc && !reduceMotion) {
