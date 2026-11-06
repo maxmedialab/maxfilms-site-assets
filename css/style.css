@@ -203,10 +203,12 @@ h1, h2, h3 {
 .hero-media::after {
     content: ""; position: absolute; inset: 0;
     background:
-        linear-gradient(180deg, rgba(5, 5, 6, 0.55) 0%, rgba(5, 5, 6, 0) 28%, rgba(5, 5, 6, 0) 62%, var(--mf-black) 100%),
-        linear-gradient(90deg, rgba(5, 5, 6, 0.88) 0%, rgba(5, 5, 6, 0.84) 58%, rgba(5, 5, 6, 0.55) 100%);
+        linear-gradient(180deg, rgba(5, 5, 6, 0.80) 0%, rgba(5, 5, 6, 0.60) 10%, rgba(5, 5, 6, 0) 30%, rgba(5, 5, 6, 0) 62%, var(--mf-black) 100%),
+        linear-gradient(90deg, rgba(5, 5, 6, 0.88) 0%, rgba(5, 5, 6, 0.84) calc(50% + 100px), rgba(5, 5, 6, 0.40) calc(50% + 260px), rgba(5, 5, 6, 0.10) 100%);
 }
-/* Scrim values measured over every frame of the loop (95th-percentile background behind the text): red H1 line ≥ 3.4:1, sub ≥ 8.7:1 */
+/* Desktop scrim (Max, 6 Nov: lighter so the video shows): dark where the text sits up to 100px past centre, open to the right; the
+   top band stays darker for the transparent nav. Measured over every frame of the loop at 1440 (95th-percentile background):
+   red H1 line ≥ 3.8:1, sub ≥ 9.9:1, nav links ≥ 6.4:1 */
 @media (max-width: 720px) {
     .hero-media::after {
         background:
