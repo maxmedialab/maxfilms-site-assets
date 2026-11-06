@@ -44,18 +44,18 @@
         // DEPLOY (lead): set both once the GHL form "MAXFILMS: Shoot inquiry" is built.
         // GHL_FORM_ID: the form id, as in the field wrapper ids "el_<FORM_ID>_...".
         // Empty = accept the page's only #form-builder, and refuse if there are several.
-        var GHL_FORM_ID = '';
-        // FIELD_MAP: custom input name -> selector of the GHL field. The standard
-        // contact fields usually render with these ids; the two custom fields get
-        // generated ids. All keys here are placeholders until checked in the live form.
+        var GHL_FORM_ID = 'JNhAR4LYQtUUVUGxx14g';
+        // Standard contact fields render with these ids; the three custom fields are
+        // found through their wrappers "el_<FORM_ID>_<customFieldId>_<n>" (read from the
+        // staging render, 6 Nov 2026).
         var FIELD_MAP = [
             { from: 'first_name',   to: '#first_name' },
             { from: 'last_name',    to: '#last_name' },
             { from: 'email',        to: '#email' },
             { from: 'organization', to: '#organization' },
-            { from: 'country',      to: '#country' },
-            { from: 'shoot_dates',  to: '#SHOOT_DATES_FIELD_KEY' },  // placeholder: GHL custom field id
-            { from: 'about_shoot',  to: '#ABOUT_SHOOT_FIELD_KEY' }   // placeholder: GHL custom field id
+            { from: 'country',      to: '[id^="el_JNhAR4LYQtUUVUGxx14g_HCmUCud3E9k01lrHoZHo_"] input' },
+            { from: 'shoot_dates',  to: '[id^="el_JNhAR4LYQtUUVUGxx14g_Szfaqs96xOFnAINdIcg1_"] input' },
+            { from: 'about_shoot',  to: '[id^="el_JNhAR4LYQtUUVUGxx14g_Sh5IvnoogKzalnOmsJ9x_"] textarea' }
         ];
 
         var SUCCESS_HTML =
