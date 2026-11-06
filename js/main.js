@@ -109,6 +109,11 @@
             var target = ghl.closest('.ghl-form-hidden') || ghl.closest('.c-form') || ghl;
             target.style.cssText = 'position:absolute!important;left:-9999px!important;height:0!important;overflow:hidden!important;pointer-events:none!important;opacity:0!important;';
             target.setAttribute('aria-hidden', 'true');
+            // aria-hidden doesn't stop the Tab key: take the hidden form's fields, button and
+            // template links out of the tab order (scripted value-setting and click() still work)
+            target.querySelectorAll('a[href], input, textarea, select, button, iframe, [tabindex]').forEach(function (el) {
+                el.setAttribute('tabindex', '-1');
+            });
         }
 
         // Copies the values and clicks the GHL submit. Returns false (and
