@@ -543,6 +543,91 @@ html.js-ready .reveal.in { opacity: 1; transform: none; transition: opacity 0.7s
 /* With the grey accent, a grey value would read weaker than the white rows, so key values stay white and heavier. */
 .log-facts .is-key dd { color: var(--mf-white); font-weight: 600; }
 
+/* ---------- Previous work: compact rows that open (Max, 7 Nov: "could we design so that they would be more compact and
+   expand on hover or tap on phone?"). A closed row shows meta, title, client line and roles; the story, facts and review sit
+   in .log-body, always in the DOM (only visibility changes), so the text stays indexable. js/main.js opens a row after a short
+   hover (desktop mouse) or on a click or tap, keeps one open at a time, and when a row above closes it scrolls the page by the
+   height that row lost, so the row under the pointer stays put. Without the script (html:not(.log-js)) hover and keyboard
+   focus open a row. The music entry (#music) keeps the plain layout above. ---------- */
+:root { --log-pad-y: clamp(20px, 2.2vw, 28px); }
+.log-list { overflow-anchor: none; } /* the script does its own scroll compensation */
+.log-list > .log-entry { display: block; padding-top: var(--log-pad-y); padding-bottom: var(--log-pad-y); }
+.log-list .log-head {
+    position: relative; margin: 0; padding: 0; border: 0;
+    display: grid; grid-template-columns: minmax(0, 1fr) var(--log-facts-w); column-gap: var(--log-gap);
+    grid-template-areas: "meta roles" "title roles" "for roles"; grid-template-rows: auto auto 1fr;
+}
+.log-list .log-meta { grid-area: meta; }
+.log-list .log-head h3 { grid-area: title; }
+.log-list .log-for { grid-area: for; }
+.log-list .log-roles {
+    grid-area: roles; align-self: stretch; align-content: start;
+    grid-template-columns: minmax(0, 1fr); row-gap: 8px; margin-top: 0;
+    padding: 2px 44px 0 clamp(20px, 2.6vw, 32px); border-left: 1px solid var(--mf-line);
+}
+/* five stars in the meta line when the row holds a Google review (the full review, with its label, is inside) */
+.log-meta .log-stars { margin-left: 1.1em; letter-spacing: 2px; }
+.log-meta .log-stars::before { content: none; }
+/* the title is the button (keyboard, screen readers); js/main.js also takes a click anywhere on a closed row, or on an open row's header */
+.log-list .log-entry:not(.is-open), .log-list .log-head { cursor: pointer; }
+.log-toggle {
+    display: inline; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; cursor: pointer;
+    font: inherit; line-height: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; text-align: left;
+}
+.log-toggle:focus-visible { outline: 2px solid var(--mf-red); outline-offset: 4px; }
+/* plus / minus marker: top right of the row on desktop, beside the title on phone */
+.log-pm {
+    position: absolute; top: 0; right: 0; pointer-events: none;
+    width: 28px; height: 28px; border: 1px solid var(--mf-line-strong); transition: border-color 0.25s ease;
+}
+.log-pm::before, .log-pm::after {
+    content: ""; position: absolute; left: 50%; top: 50%; width: 10px; height: 1.5px; margin: -0.75px 0 0 -5px;
+    background: var(--mf-white); transition: transform 0.35s var(--ease);
+}
+.log-pm::after { transform: rotate(90deg); }
+.log-list .log-entry.is-open .log-pm::after { transform: rotate(0deg); }
+.log-list .log-entry:hover .log-pm, .log-head:has(.log-toggle:focus-visible) .log-pm { border-color: var(--mf-red); }
+/* the opening part: grid rows 0fr to 1fr animates to the content's own height */
+.log-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.45s var(--ease); }
+.log-body-in { min-height: 0; overflow: hidden; visibility: hidden; transition: visibility 0s linear 0.45s; }
+.log-list .log-entry.is-open .log-body,
+html:not(.log-js) .log-list .log-entry:is(:hover, :focus-within) .log-body { grid-template-rows: 1fr; }
+.log-list .log-entry.is-open .log-body-in,
+html:not(.log-js) .log-list .log-entry:is(:hover, :focus-within) .log-body-in { visibility: visible; transition-delay: 0s; }
+.log-list .log-entry.no-anim .log-body, .log-list .log-entry.no-anim .log-body-in { transition: none; }
+.log-grid {
+    display: grid; grid-template-columns: minmax(0, 1fr) var(--log-facts-w); column-gap: var(--log-gap);
+    grid-template-areas: "main facts" "quote facts"; grid-template-rows: auto 1fr;
+    margin-top: 22px; padding-top: 24px; border-top: 1px solid var(--mf-line);
+}
+@media (prefers-reduced-motion: reduce) {
+    .log-body, .log-body-in, .log-pm::before, .log-pm::after { transition: none; }
+}
+@media (max-width: 900px) {
+    .log-list .log-head { grid-template-columns: minmax(0, 1fr); grid-template-areas: "meta" "title" "for" "roles"; grid-template-rows: none; }
+    .log-list .log-meta { padding-right: 40px; min-height: 28px; } /* the marker sits at the end of this line; the title gets the full width */
+    .log-list .log-roles { grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; margin-top: 14px; padding: 0; border-left: 0; }
+    .log-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "main" "facts" "quote"; grid-template-rows: none; }
+}
+/* Phone (Max, 7 Nov: "font size should be adjusted to better use the space"): larger title, client line and roles;
+   the roles run as one line of text across the full width instead of an indented column */
+@media (max-width: 600px) {
+    .log-meta .log-stars { display: none; } /* no room on the meta line; the review shows when the row opens */
+    .log-list .log-head {
+        grid-template-columns: minmax(0, 1fr) 28px; column-gap: 12px;
+        grid-template-areas: "meta meta" "title pm" "for for" "roles roles";
+    }
+    .log-pm { position: relative; top: auto; right: auto; grid-area: pm; }
+    .log-list .log-meta { padding-right: 0; min-height: 0; margin-bottom: 10px; font-size: 11px; letter-spacing: 0.08em; }
+    .log-list .log-meta span + span::before { margin: 0 0.5em; }
+    .log-list .log-head h3 { font-size: 20px; line-height: 1.25; }
+    .log-list .log-for { margin-top: 10px; font-size: 17px; line-height: 1.45; }
+    .log-list .log-roles { display: block; margin-top: 14px; line-height: 1.75; }
+    .log-list .log-roles .log-label { display: inline; margin-right: 0.9em; font-size: 11px; }
+    .log-list .log-roles ul { display: inline; }
+    .log-list .log-roles li { display: inline-block; font-size: 12px; letter-spacing: 0.1em; } /* inline-block: a line may break between roles */
+}
+
 /* Music variant: link tiles under the two columns */
 .log-entry--music {
     grid-template-areas:

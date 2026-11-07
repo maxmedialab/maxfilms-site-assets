@@ -280,6 +280,8 @@
 
     onReady(function () {
 
+        var lenisRef = null; // set below once smooth scroll starts; the work rows use it for instant scroll fixes
+
         /* ---------- JS-ready gate (reveal styles only apply now) ---------- */
         if (!reduceMotion) document.documentElement.classList.add('js-ready');
 
@@ -333,6 +335,75 @@
             });
         });
 
+        /* ---------- Previous work: compact rows that open (Max, 7 Nov). One row open at a time.
+           Desktop mouse: a row opens once the pointer rests on it for HOVER_MS (hover intent, so sweeping
+           down the list does not open every row on the way). A click or tap on a row toggles it. When a row
+           above the one opening closes, it closes at once and the page scrolls by the height it lost, so the
+           row under the pointer or finger stays where it is. Styles: the .log-list block in css/style.css. ---------- */
+        var logList = document.getElementById('log-list');
+        if (logList) {
+            document.documentElement.classList.add('log-js');
+            var HOVER_MS = 180;
+            var fineHover = window.matchMedia('(hover: hover) and (pointer: fine)');
+            var hoverTimer = null, pendingEntry = null, shutEntry = null, lastX = -1, lastY = -1;
+
+            var setOpen = function (entry, open) {
+                entry.classList.toggle('is-open', open);
+                var btn = entry.querySelector('.log-toggle');
+                if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            };
+            var scrollByNow = function (dy) {
+                if (!dy) return;
+                if (lenisRef) lenisRef.scrollTo(window.scrollY + dy, { immediate: true, force: true });
+                else window.scrollBy({ top: dy, behavior: 'instant' });
+            };
+            var openEntry = function (entry, byHover) {
+                var prev = logList.querySelector('.log-entry.is-open');
+                if (prev && prev !== entry) {
+                    if (prev.compareDocumentPosition(entry) & Node.DOCUMENT_POSITION_FOLLOWING) {
+                        var before = entry.getBoundingClientRect().top;
+                        prev.classList.add('no-anim');
+                        setOpen(prev, false);
+                        var dy = entry.getBoundingClientRect().top - before; // forces layout with the row above shut
+                        prev.classList.remove('no-anim');
+                        scrollByNow(dy);
+                    } else {
+                        setOpen(prev, false);
+                    }
+                }
+                setOpen(entry, true);
+                entry.mfHoverOpenedAt = byHover ? Date.now() : 0;
+            };
+            var cancelHover = function () { clearTimeout(hoverTimer); hoverTimer = null; pendingEntry = null; };
+
+            logList.addEventListener('pointermove', function (e) {
+                if (e.pointerType !== 'mouse' || !fineHover.matches) return;
+                if (e.clientX === lastX && e.clientY === lastY) return; // the page scrolled under a still pointer
+                lastX = e.clientX; lastY = e.clientY;
+                var entry = e.target.closest('.log-entry');
+                if (shutEntry && entry !== shutEntry) shutEntry = null;
+                if (!entry || entry.classList.contains('is-open') || entry === shutEntry) { cancelHover(); return; }
+                if (entry === pendingEntry) return;
+                cancelHover();
+                pendingEntry = entry;
+                hoverTimer = setTimeout(function () { pendingEntry = null; hoverTimer = null; openEntry(entry, true); }, HOVER_MS);
+            });
+            logList.addEventListener('pointerleave', function () { cancelHover(); shutEntry = null; });
+            // A click or tap anywhere on a closed row opens it; on an open row only its header closes it,
+            // so links, reading and selecting text in the open part never shut the row.
+            logList.addEventListener('click', function (e) {
+                var entry = e.target.closest('.log-entry');
+                if (!entry || e.target.closest('a')) return;
+                if (e.detail && String(window.getSelection ? window.getSelection() : '').length) return; // mouse text selection
+                cancelHover();
+                if (!entry.classList.contains('is-open')) { openEntry(entry, false); return; }
+                if (!e.target.closest('.log-head')) return;
+                if (Date.now() - (entry.mfHoverOpenedAt || 0) < 800) return; // a click just after the hover opened it means "open"
+                setOpen(entry, false);
+                shutEntry = entry; // stays shut until the pointer leaves it
+            });
+        }
+
         /* ---------- Hero loop: still poster frame under reduced motion or Save-Data ---------- */
         var heroVideo = document.querySelector('.hero-video');
         var saveData = navigator.connection && navigator.connection.saveData;
@@ -384,6 +455,7 @@
 
             try {
                 var lenis = new window.Lenis({ duration: 1.05, smoothWheel: true });
+                lenisRef = lenis;
                 window.gsap.registerPlugin(window.ScrollTrigger);
                 lenis.on('scroll', window.ScrollTrigger.update);
                 window.gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
