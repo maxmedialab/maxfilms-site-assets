@@ -197,18 +197,31 @@ h1, h2, h3 {
         var(--mf-black);
     overflow: hidden;
 }
-/* Hero loop under a dark scrim: darkest where the text sits (left), lighter on the right, fades into the page at the bottom */
+/* Hero loop under a scrim: a light dim over the whole video, a darker top band for the transparent nav, a fade into the page at the
+   bottom, and a soft dark ellipse behind the text block (.hero-inner::before) that moves with the text at every width, so there is
+   no vertical seam (Max, 7 Nov: "a very visible fade on the left"). Measured over every frame of the loop at 1024, 1440, 2000 and
+   2970 wide (95th-percentile background behind each text box): red H1 line ≥ 3.5:1, overline/sub/ghost button/nav ≥ 7.4:1;
+   steepest fade 0.16 alpha per 100px (the old left-anchored scrim: 0.275) */
 .hero-media { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; background: var(--mf-black); }
 .hero-video { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(0.85); }
 .hero-media::after {
     content: ""; position: absolute; inset: 0;
     background:
         linear-gradient(180deg, rgba(5, 5, 6, 0.80) 0%, rgba(5, 5, 6, 0.60) 10%, rgba(5, 5, 6, 0) 30%, rgba(5, 5, 6, 0) 62%, var(--mf-black) 100%),
-        linear-gradient(90deg, rgba(5, 5, 6, 0.88) 0%, rgba(5, 5, 6, 0.84) calc(50% + 100px), rgba(5, 5, 6, 0.40) calc(50% + 260px), rgba(5, 5, 6, 0.10) 100%);
+        linear-gradient(90deg, rgba(5, 5, 6, 0.35) 0%, rgba(5, 5, 6, 0) 55%),
+        rgba(5, 5, 6, 0.15);
 }
-/* Desktop scrim (Max, 6 Nov: lighter so the video shows): dark where the text sits up to 100px past centre, open to the right; the
-   top band stays darker for the transparent nav. Measured over every frame of the loop at 1440 (95th-percentile background):
-   red H1 line ≥ 3.8:1, sub ≥ 9.9:1, nav links ≥ 6.4:1 */
+/* Centred on the text (33% across .hero-inner): 0.82 across the text, then an eased fall to 0 at the ellipse edge */
+.hero-inner::before {
+    content: ""; position: absolute; z-index: -1; pointer-events: none;
+    left: -45%; right: -11%; top: -100%; bottom: -100%;
+    background: radial-gradient(closest-side,
+        rgba(5, 5, 6, 0.82) 0%, rgba(5, 5, 6, 0.82) 35%, rgba(5, 5, 6, 0.75) 50%, rgba(5, 5, 6, 0.57) 65%,
+        rgba(5, 5, 6, 0.31) 80%, rgba(5, 5, 6, 0.10) 92%, rgba(5, 5, 6, 0) 100%);
+}
+@media (max-width: 720px) {
+    .hero-inner::before { display: none; }
+}
 @media (max-width: 720px) {
     .hero-media::after {
         background:
