@@ -566,7 +566,10 @@ html.js-ready .reveal.in { opacity: 1; transform: none; transition: opacity 0.7s
     padding: 2px 44px 0 clamp(20px, 2.6vw, 32px); border-left: 1px solid var(--mf-line);
 }
 /* five stars in the meta line when the row holds a Google review (the full review, with its label, is inside) */
-.log-meta .log-stars { margin-left: 1.1em; letter-spacing: 2px; }
+/* Orbitron has no star glyph, so ★ falls back to a system font and drew at about 5.9 px against 7.9 px capitals (Max, 10 Nov:
+   "half the size of the font in that row"). At 15 px the star's ink matches the 11 px capitals; baseline alignment keeps them on one line. */
+.log-list .log-meta { align-items: baseline; }
+.log-meta .log-stars { margin-left: 0.8em; font-size: 15px; line-height: 0.9; letter-spacing: 1px; }
 .log-meta .log-stars::before { content: none; }
 /* the title is the button (keyboard, screen readers); js/main.js also takes a click anywhere on a closed row, or on an open row's header */
 .log-list .log-entry:not(.is-open), .log-list .log-head { cursor: pointer; }
