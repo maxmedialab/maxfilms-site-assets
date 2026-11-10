@@ -335,17 +335,28 @@
             });
         });
 
-        /* ---------- Previous work: compact rows that open (Max, 7 Nov). One row open at a time.
-           Desktop mouse: a row opens once the pointer rests on it for HOVER_MS (hover intent, so sweeping
-           down the list does not open every row on the way). A click or tap on a row toggles it. When a row
-           above the one opening closes, it closes at once and the page scrolls by the height it lost, so the
-           row under the pointer or finger stays where it is. Styles: the .log-list block in css/style.css. ---------- */
+        /* ---------- Previous work: compact rows that open on hover (Max, 7 Nov; hover mechanics reworked 10 Nov,
+           after rows opened and shut under his pointer while he scrolled to read one). One row open at a time.
+           Desktop mouse: a row opens when the pointer is moved onto it and stops there for HOVER_MS.
+           Scrolling never opens or closes a row:
+           - while the page scrolls (wheel, trackpad, the Lenis glide) and for SCROLL_QUIET_MS after the last
+             scroll event, pointer moves are ignored and a pending open is cancelled;
+           - after a scroll the pointer has to travel MIN_TRAVEL px before a hover counts, and the row it was
+             resting on when the scroll ended stays shut until the pointer moves onto another row or leaves
+             the list (so a reader's hand drifting on the next row never shuts the one being read).
+           The timer restarts while the pointer is still moving (more than MOVE_PX in one step), so sweeping
+           down the list opens nothing on the way. An open row stays open wherever the pointer goes; it
+           closes when another row opens or when its own header is clicked. A click or tap toggles a row
+           (phone, keyboard). When a row above the one opening closes, it closes at once and the page scrolls
+           by the height it lost, so the row under the pointer stays put.
+           Styles: the .log-list block in css/style.css. ---------- */
         var logList = document.getElementById('log-list');
         if (logList) {
             document.documentElement.classList.add('log-js');
-            var HOVER_MS = 180;
+            var HOVER_MS = 180, SCROLL_QUIET_MS = 400, MIN_TRAVEL = 8, MOVE_PX = 4;
             var fineHover = window.matchMedia('(hover: hover) and (pointer: fine)');
-            var hoverTimer = null, pendingEntry = null, shutEntry = null, lastX = -1, lastY = -1;
+            var hoverTimer = null, pendingEntry = null, shutEntry = null, restEntry = null;
+            var lastScrollAt = 0, travel = 0, lastX = null, lastY = null, freshAfterScroll = true;
 
             var setOpen = function (entry, open) {
                 entry.classList.toggle('is-open', open);
@@ -375,20 +386,36 @@
                 entry.mfHoverOpenedAt = byHover ? Date.now() : 0;
             };
             var cancelHover = function () { clearTimeout(hoverTimer); hoverTimer = null; pendingEntry = null; };
+            var onScroll = function () { lastScrollAt = Date.now(); travel = 0; freshAfterScroll = true; cancelHover(); };
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('wheel', onScroll, { passive: true });
 
-            logList.addEventListener('pointermove', function (e) {
+            // On the document, so the pointer's position is known even before it reaches the list.
+            document.addEventListener('pointermove', function (e) {
                 if (e.pointerType !== 'mouse' || !fineHover.matches) return;
-                if (e.clientX === lastX && e.clientY === lastY) return; // the page scrolled under a still pointer
+                var px = lastX, py = lastY;
                 lastX = e.clientX; lastY = e.clientY;
-                var entry = e.target.closest('.log-entry');
+                if (Date.now() - lastScrollAt < SCROLL_QUIET_MS) { cancelHover(); return; }
+                var inList = e.target && e.target.closest ? logList.contains(e.target) : false;
+                var entry = inList ? e.target.closest('.log-entry') : null;
+                if (freshAfterScroll) {
+                    // the row the pointer was resting on when the scroll ended (a still pointer keeps its screen spot)
+                    freshAfterScroll = false;
+                    var restEl = px === null ? null : document.elementFromPoint(px, py);
+                    restEntry = restEl && logList.contains(restEl) ? restEl.closest('.log-entry') : null;
+                }
+                var step = px === null ? 0 : Math.abs(e.clientX - px) + Math.abs(e.clientY - py);
+                travel += step;
+                if (restEntry && (!inList || (entry && entry !== restEntry))) restEntry = null;
                 if (shutEntry && entry !== shutEntry) shutEntry = null;
-                if (!entry || entry.classList.contains('is-open') || entry === shutEntry) { cancelHover(); return; }
-                if (entry === pendingEntry) return;
+                if (!entry || entry.classList.contains('is-open') || entry === shutEntry || entry === restEntry || travel < MIN_TRAVEL) {
+                    cancelHover(); return;
+                }
+                if (entry === pendingEntry && step <= MOVE_PX) return; // resting: let the timer run
                 cancelHover();
                 pendingEntry = entry;
                 hoverTimer = setTimeout(function () { pendingEntry = null; hoverTimer = null; openEntry(entry, true); }, HOVER_MS);
-            });
-            logList.addEventListener('pointerleave', function () { cancelHover(); shutEntry = null; });
+            }, { passive: true });
             // A click or tap anywhere on a closed row opens it; on an open row only its header closes it,
             // so links, reading and selecting text in the open part never shut the row.
             logList.addEventListener('click', function (e) {

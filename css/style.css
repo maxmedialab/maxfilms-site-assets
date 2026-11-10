@@ -545,10 +545,10 @@ html.js-ready .reveal.in { opacity: 1; transform: none; transition: opacity 0.7s
 
 /* ---------- Previous work: compact rows that open (Max, 7 Nov: "could we design so that they would be more compact and
    expand on hover or tap on phone?"). A closed row shows meta, title, client line and roles; the story, facts and review sit
-   in .log-body, always in the DOM (only visibility changes), so the text stays indexable. js/main.js opens a row after a short
-   hover (desktop mouse) or on a click or tap, keeps one open at a time, and when a row above closes it scrolls the page by the
-   height that row lost, so the row under the pointer stays put. Without the script (html:not(.log-js)) hover and keyboard
-   focus open a row. The music entry (#music) keeps the plain layout above. ---------- */
+   in .log-body, always in the DOM (only visibility changes), so the text stays indexable. js/main.js opens a row on a
+   deliberate hover (desktop mouse; never while or just after the page scrolls, 10 Nov) or on a click or tap, keeps one open at
+   a time, and when a row above closes it scrolls the page by the height that row lost, so the row under the pointer stays put.
+   Without the script (html:not(.log-js)) keyboard focus opens a row. The music entry (#music) keeps the plain layout above. ---------- */
 :root { --log-pad-y: clamp(20px, 2.2vw, 28px); }
 .log-list { overflow-anchor: none; } /* the script does its own scroll compensation */
 .log-list > .log-entry { display: block; padding-top: var(--log-pad-y); padding-bottom: var(--log-pad-y); }
@@ -591,9 +591,9 @@ html.js-ready .reveal.in { opacity: 1; transform: none; transition: opacity 0.7s
 .log-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.45s var(--ease); }
 .log-body-in { min-height: 0; overflow: hidden; visibility: hidden; transition: visibility 0s linear 0.45s; }
 .log-list .log-entry.is-open .log-body,
-html:not(.log-js) .log-list .log-entry:is(:hover, :focus-within) .log-body { grid-template-rows: 1fr; }
+html:not(.log-js) .log-list .log-entry:focus-within .log-body { grid-template-rows: 1fr; }
 .log-list .log-entry.is-open .log-body-in,
-html:not(.log-js) .log-list .log-entry:is(:hover, :focus-within) .log-body-in { visibility: visible; transition-delay: 0s; }
+html:not(.log-js) .log-list .log-entry:focus-within .log-body-in { visibility: visible; transition-delay: 0s; }
 .log-list .log-entry.no-anim .log-body, .log-list .log-entry.no-anim .log-body-in { transition: none; }
 .log-grid {
     display: grid; grid-template-columns: minmax(0, 1fr) var(--log-facts-w); column-gap: var(--log-gap);
